@@ -12,13 +12,21 @@ export const getTypeOrmConfig = async (
   port: +configService.get('DATABASE_PORT'),
   database: configService.get('DATABASE_NAME'),
 
-  entities: ['src/**/*.entity.ts'],
+  entities: [
+    configService.get('NODE_ENV') === 'DEV'
+      ? 'src/**/*.entity.ts'
+      : 'dist/**/*.entity.js',
+  ],
 
-  migrations: ['src/migrations/*.ts'],
+  migrations: [
+    configService.get('NODE_ENV') === 'DEV'
+      ? 'src/migrations/*.ts'
+      : 'dist/migrations/*.js',
+  ],
   migrationsTableName: 'migrations',
   cli: {
     migrationsDir: 'src/migrations',
   },
 
-  ssl: configService.get('ENV') !== 'DEV',
+  ssl: false,
 });

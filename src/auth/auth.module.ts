@@ -19,7 +19,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
     }),
     TypeOrmModule.forFeature([Users]),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, ConfigService],
   controllers: [AuthController],
 })
 export class AuthModule {}

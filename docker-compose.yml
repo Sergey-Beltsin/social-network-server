@@ -1,0 +1,25 @@
+version: '3'
+services:
+  postgres:
+    container_name: postgres-social
+    image: postgres:latest
+    ports:
+      - '5555:5432'
+    env_file:
+      - docker.env
+    networks:
+      - postgres
+
+  server:
+    container_name: social-server
+    build: .
+    env_file:
+      - .env
+    ports:
+      - '5050:5050'
+    networks:
+      - postgres
+
+networks:
+  postgres:
+    driver: bridge
