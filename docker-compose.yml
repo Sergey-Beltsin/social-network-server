@@ -3,6 +3,7 @@ services:
   postgres:
     container_name: postgres-social
     image: postgres:latest
+    restart: always
     ports:
       - '5555:5432'
     env_file:
@@ -12,6 +13,7 @@ services:
 
   server:
     container_name: social-server
+    restart: always
     build: .
     env_file:
       - .env
