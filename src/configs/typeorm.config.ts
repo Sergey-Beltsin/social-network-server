@@ -13,13 +13,13 @@ export const getTypeOrmConfig = async (
   database: configService.get('DATABASE_NAME'),
 
   entities: [
-    configService.get('NODE_ENV') === 'DEV'
+    configService.get('NODE_ENV') === 'development'
       ? 'src/**/*.entity.ts'
       : 'dist/**/*.entity.js',
   ],
 
   migrations: [
-    configService.get('NODE_ENV') === 'DEV'
+    configService.get('NODE_ENV') === 'development'
       ? 'src/migrations/*.ts'
       : 'dist/migrations/*.js',
   ],

@@ -16,7 +16,7 @@ services:
     restart: always
     build: .
     env_file:
-      - .env
+      - .env.production
     ports:
       - '5050:5050'
     networks:
