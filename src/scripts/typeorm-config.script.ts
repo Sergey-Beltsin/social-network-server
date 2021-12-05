@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { getTypeOrmConfig } from '../configs/typeorm.config';
+import { getTypeOrmConfig } from '@/configs/typeorm.config';
 
 const generate = async () => {
   const options = await getTypeOrmConfig({

@@ -1,13 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Users } from '../entites/users.entity';
 import { Repository } from 'typeorm';
-import { UserLoginDto } from './dto/user-login.dto';
-import { validate } from 'class-validator';
-import { EMAIL_OR_PASSWORD_INCORRECT } from './auth.constants';
 import { compareSync, hash } from 'bcrypt';
+
+import { Users } from '@/routes/users/users.entity';
+import { Response } from '@/types/global';
+import { UserLoginDto } from './dto/user-login.dto';
 import { UserCreateDto } from './dto/user-create.dto';
+import { EMAIL_OR_PASSWORD_INCORRECT } from './auth.constants';
 
 @Injectable()
 export class AuthService {
@@ -17,15 +18,7 @@ export class AuthService {
     private readonly usersRepository: Repository<Users>,
   ) {}
 
-  async login(
-    user: UserLoginDto,
-  ): Promise<{ message: { email: string; access_token: string } }> {
-    validate(user).then((errors) => {
-      if (errors.length > 0) {
-        throw new HttpException(errors.join(', '), HttpStatus.BAD_REQUEST);
-      }
-    });
-
+  async login(user: UserLoginDto): Promise<Response> {
     const userDetails = await this.usersRepository.findOne({
       email: user.email,
     });
@@ -46,33 +39,27 @@ export class AuthService {
       );
     }
 
-    return {
-      message: {
-        email: user.email,
-        access_token: this.jwtService.sign({
-          email: user.email,
-          sub: userDetails.id,
-        }),
-      },
-    };
+    delete userDetails.password;
+
+    return new Response({
+      user: { ...userDetails },
+      access_token: this.jwtService.sign({
+        username: userDetails.username,
+        sub: userDetails.id,
+      }),
+    });
   }
 
-  async create(user: UserCreateDto): Promise<{ message: string }> {
+  async create(user: UserCreateDto): Promise<Response> {
     const userDTO = { ...user, password: await hash(user.password, 10) };
-
-    await validate(userDTO).then((errors) => {
-      if (errors.length > 0) {
-        throw new HttpException(errors.join(', '), HttpStatus.BAD_REQUEST);
-      }
-    });
 
     await this.usersRepository.save(userDTO).catch((error) => {
       console.log(error);
       throw new HttpException('alreadyExists', HttpStatus.BAD_REQUEST);
     });
 
-    return {
-      message: 'User created success',
-    };
+    delete user.password;
+
+    return new Response(user);
   }
 }
