@@ -1,9 +1,9 @@
 import { IsDefined } from 'class-validator';
 
 export class UserLoginDto {
-  @IsDefined({ message: 'empty' })
+  @IsDefined({ message: 'required' })
   email: string;
 
-  @IsDefined({ message: 'empty' })
+  @IsDefined({ message: 'required' })
   password: string;
 }
