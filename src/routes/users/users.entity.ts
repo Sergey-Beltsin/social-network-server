@@ -1,9 +1,17 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Profile } from '@/routes/profile/profile.entity';
+import { JoinColumn } from 'typeorm';
 
 @Entity()
 export class Users extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ nullable: false, unique: true })
   email: string;
@@ -11,12 +19,7 @@ export class Users extends BaseEntity {
   @Column({ nullable: false })
   password: string;
 
-  @Column({ nullable: false, unique: true })
-  username: string;
-
-  @Column({ nullable: false })
-  name: string;
-
-  @Column({ nullable: false })
-  surname: string;
+  @OneToOne(() => Profile, { cascade: true })
+  @JoinColumn()
+  profile: Profile;
 }

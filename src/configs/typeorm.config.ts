@@ -29,4 +29,5 @@ export const getTypeOrmConfig = async (
   },
 
   ssl: false,
+  synchronize: configService.get('NODE_ENV') === 'development',
 });

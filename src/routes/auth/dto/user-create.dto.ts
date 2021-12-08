@@ -1,4 +1,12 @@
-import { IsDefined, IsEmail, MaxLength, MinLength } from 'class-validator';
+import {
+  IsDefined,
+  IsEmail,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+
+import { passwordRegex } from '@/constants/user';
 
 export class UserCreateDto {
   @IsEmail({}, { message: 'pattern' })
@@ -8,6 +16,7 @@ export class UserCreateDto {
   @MinLength(8, { message: 'minLength' })
   @MaxLength(20, { message: 'maxLength' })
   @IsDefined({ message: 'required' })
+  @Matches(passwordRegex, { message: 'pattern' })
   password: string;
 
   @MinLength(4, { message: 'minLength' })
