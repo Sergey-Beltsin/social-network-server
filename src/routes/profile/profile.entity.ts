@@ -1,13 +1,18 @@
 import {
+  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
-  PrimaryGeneratedColumn,
+  JoinColumn,
+  OneToMany,
+  PrimaryColumn,
 } from 'typeorm';
 
+import { Posts } from '@/routes/posts/posts.entity';
+
 @Entity()
-export class Profile {
-  @PrimaryGeneratedColumn('uuid')
+export class Profile extends BaseEntity {
+  @PrimaryColumn('uuid')
   id: string;
 
   @CreateDateColumn()
@@ -24,4 +29,8 @@ export class Profile {
 
   @Column({ nullable: false })
   surname: string;
+
+  @OneToMany(() => Posts, (post) => post.profile)
+  @JoinColumn()
+  posts: Posts[];
 }

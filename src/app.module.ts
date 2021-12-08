@@ -7,6 +7,7 @@ import { getTypeOrmConfig } from './configs/typeorm.config';
 import { AuthModule } from './routes/auth/auth.module';
 import { UsersModule } from './routes/users/users.module';
 import { ProfileModule } from './routes/profile/profile.module';
+import { PostsModule } from './routes/posts/posts.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ProfileModule } from './routes/profile/profile.module';
     AuthModule,
     UsersModule,
     ProfileModule,
+    PostsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

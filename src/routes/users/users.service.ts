@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { hash } from 'bcrypt';
+import { v4 } from 'uuid';
 
 import { Users } from '@/routes/users/users.entity';
-import { userPublicFields } from '@/constants/user';
 import { UserCreateDto } from '@/routes/auth/dto/user-create.dto';
 import { ProfileService } from '@/routes/profile/profile.service';
 import { Profile } from '@/routes/profile/profile.entity';
@@ -25,23 +25,34 @@ export class UsersService {
     return await this.profileService.getByQuery(query, id);
   }
 
-  async findByEmail(email: string): Promise<Users> {
+  async findByEmail(email: string, relations?: string[]): Promise<Users> {
     return await this.usersRepository.findOne({
       where: {
         email,
       },
+      relations,
     });
   }
 
   async create(user: UserCreateDto): Promise<UserCreateDto> {
-    const userDTO = { ...user, password: await hash(user.password, 10) };
+    const userDTO = {
+      ...user,
+      password: await hash(user.password, 10),
+      profile: null,
+      id: v4(),
+    };
 
-    const newUser = await this.usersRepository.save(userDTO).catch((error) => {
+    userDTO.profile = await this.profileService.createProfile({
+      id: userDTO.id,
+      name: user.name,
+      surname: user.surname,
+      username: user.username,
+    });
+
+    await this.usersRepository.save(userDTO).catch((error) => {
       console.log(error);
       throw new HttpException('alreadyExists', HttpStatus.BAD_REQUEST);
     });
-
-    await this.profileService.createProfile(newUser);
 
     return user;
   }

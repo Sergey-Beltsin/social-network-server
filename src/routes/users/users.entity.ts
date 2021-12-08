@@ -19,7 +19,7 @@ export class Users extends BaseEntity {
   @Column({ nullable: false })
   password: string;
 
-  @OneToOne(() => Profile, { cascade: true })
+  @OneToOne(() => Profile, { eager: true })
   @JoinColumn()
   profile: Profile;
 }

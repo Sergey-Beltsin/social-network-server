@@ -19,7 +19,9 @@ export class AuthService {
   ) {}
 
   async login(user: UserLoginDto): Promise<Response> {
-    const userDetails = await this.usersService.findByEmail(user.email);
+    const userDetails = await this.usersService.findByEmail(user.email, [
+      'profile',
+    ]);
 
     if (!userDetails) {
       throw new HttpException(
@@ -37,16 +39,8 @@ export class AuthService {
       );
     }
 
-    delete userDetails.password;
-
-    const profile = await this.profileService.getProfileInfo(userDetails.id);
-
-    if (!(profile.message instanceof Profile)) {
-      return profile;
-    }
-
     return new Response({
-      profile: { ...profile.message },
+      profile: { ...userDetails.profile },
       access_token: this.jwtService.sign({
         email: userDetails.email,
         sub: userDetails.id,

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Res, UseGuards } from '@nestjs/common';
 
 import { ProfileService } from '@/routes/profile/profile.service';
 import { AuthUser } from '@/routes/users/decorators/auth-user.decorator';
@@ -13,11 +13,19 @@ export class ProfileController {
   @Get()
   @UseGuards(JwtAuthGuard)
   async getCurrentProfileInfo(@AuthUser() user: IUser): Promise<Response> {
-    return this.profileService.getProfileInfo(user.id);
+    try {
+      return new Response(await this.profileService.getProfileInfo(user.id));
+    } catch (e) {
+      return e.response;
+    }
   }
 
   @Get('/:id')
   async getProfileInfo(@Param('id') id: string): Promise<Response> {
-    return this.profileService.getProfileInfo(id);
+    try {
+      return new Response(this.profileService.getProfileInfo(id));
+    } catch (e) {
+      return e.response;
+    }
   }
 }

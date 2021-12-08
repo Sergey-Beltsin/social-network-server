@@ -1,16 +1,10 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Not, Repository } from 'typeorm';
 
 import { Response } from '@/types/global';
 import { Profile } from '@/routes/profile/profile.entity';
-import { Users } from '@/routes/users/users.entity';
-import { userPublicFields } from '@/constants/user';
+import { Posts } from '@/routes/posts/posts.entity';
 
 @Injectable()
 export class ProfileService {
@@ -37,7 +31,7 @@ export class ProfileService {
     });
   }
 
-  async getProfileInfo(id: string): Promise<Response> {
+  async getProfileInfo(id: string): Promise<Profile> {
     const profile = await this.profileRepository.findOne({
       where: {
         id: id,
@@ -45,13 +39,13 @@ export class ProfileService {
     });
 
     if (!profile) {
-      return new HttpException(
+      throw new HttpException(
         new Response('Profile not found'),
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    return new Response(profile);
+    return profile;
   }
 
   async createProfile({ id, name, surname, username }): Promise<Profile> {
@@ -63,8 +57,16 @@ export class ProfileService {
         surname,
         username,
       })
-      .catch(() => {
+      .catch((error) => {
+        console.log(error);
         throw new HttpException('alreadyExists', HttpStatus.BAD_REQUEST);
       });
+  }
+
+  async savePostToProfile(profileId: string, post: Posts) {
+    const profile = await this.profileRepository.findOne(profileId);
+    console.log('save post', profile);
+    profile.posts.push(post);
+    return await this.profileRepository.save({ ...profile });
   }
 }
