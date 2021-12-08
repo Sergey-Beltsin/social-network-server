@@ -17,24 +17,12 @@ export class UsersService {
     private readonly profileService: ProfileService,
   ) {}
 
-  async getAll(id: string): Promise<Users[]> {
-    return await this.usersRepository.find({
-      select: userPublicFields,
-      where: {
-        id: Not(id),
-      },
-    });
+  async getAll(id: string): Promise<Profile[]> {
+    return await this.profileService.getAll(id);
   }
 
-  async getByQuery(query: string, id: string): Promise<Users[]> {
-    return await this.usersRepository.find({
-      where: [
-        { name: ILike(`%${query}%`), id: Not(id) },
-        { surname: ILike(`%${query}%`), id: Not(id) },
-        { username: ILike(`%${query}%`), id: Not(id) },
-      ],
-      select: userPublicFields,
-    });
+  async getByQuery(query: string, id: string): Promise<Profile[]> {
+    return await this.profileService.getByQuery(query, id);
   }
 
   async findByEmail(email: string): Promise<Users> {

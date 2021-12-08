@@ -4,6 +4,7 @@ import { UsersService } from '@/routes/users/users.service';
 import { JwtAuthGuard } from '@/routes/auth/strategy/jwt-auth.guard';
 import { AuthUser } from '@/routes/users/decorators/auth-user.decorator';
 import { IUser } from '@/routes/users/interfaces/user.interface';
+import { Profile } from '@/routes/profile/profile.entity';
 
 @Controller('users')
 export class UsersController {
@@ -11,7 +12,10 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getAll(@Query('q') query: string, @AuthUser() user: IUser) {
+  async getAll(
+    @Query('q') query: string,
+    @AuthUser() user: IUser,
+  ): Promise<Profile[]> {
     if (query) {
       return this.usersService.getByQuery(query, user.id);
     }
