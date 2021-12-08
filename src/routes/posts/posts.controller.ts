@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 
 import { PostsService } from '@/routes/posts/posts.service';
 import { AuthUser } from '@/routes/users/decorators/auth-user.decorator';
@@ -22,7 +22,7 @@ export class PostsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async createPost(@AuthUser() user: IUser, post: PostCreateDto) {
+  async createPost(@AuthUser() user: IUser, @Body() post: PostCreateDto) {
     return this.postsService.createPost(user.id, post);
   }
 }

@@ -64,9 +64,14 @@ export class ProfileService {
   }
 
   async savePostToProfile(profileId: string, post: Posts) {
-    const profile = await this.profileRepository.findOne(profileId);
-    console.log('save post', profile);
+    const profile = await this.profileRepository.findOne({
+      where: {
+        id: profileId,
+      },
+      relations: ['posts'],
+    });
     profile.posts.push(post);
-    return await this.profileRepository.save({ ...profile });
+
+    return await this.profileRepository.save(profile);
   }
 }

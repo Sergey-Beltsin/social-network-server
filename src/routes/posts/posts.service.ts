@@ -24,34 +24,27 @@ export class PostsService {
       );
     }
 
-    const posts = await this.postRepository.find({
+    return await this.postRepository.find({
       order: {
         created: 'DESC',
       },
+      relations: ['profile'],
+      take: limit,
+      skip: page * limit - limit,
     });
-    console.log(posts);
-
-    return posts;
   }
 
   async createPost(id: string, post: PostCreateDto) {
-    try {
-      const profile = await this.profileService.getProfileInfo(id);
-      console.log(profile);
+    const profile = await this.profileService.getProfileInfo(id);
 
-      const newPost = await this.postRepository.save({
-        ...post,
-        likes: [],
-        profile,
-      });
-      console.log(newPost);
+    const newPost = await this.postRepository.save({
+      ...post,
+      likes: [],
+      profile,
+    });
 
-      await this.profileService.savePostToProfile(profile.id, newPost);
+    await this.profileService.savePostToProfile(profile.id, newPost);
 
-      console.log('success');
-      return new Response('Post created success');
-    } catch (e) {
-      return e.response;
-    }
+    return new Response(newPost);
   }
 }
