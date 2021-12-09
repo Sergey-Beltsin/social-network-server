@@ -1,10 +1,19 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 
 import { PostsService } from '@/routes/posts/posts.service';
 import { AuthUser } from '@/routes/users/decorators/auth-user.decorator';
 import { IUser } from '@/routes/users/interfaces/user.interface';
 import { PostCreateDto } from '@/routes/posts/dto/post-create.dto';
 import { JwtAuthGuard } from '@/routes/auth/strategy/jwt-auth.guard';
+import { Response } from '@/types/global';
 
 @Controller('posts')
 export class PostsController {
@@ -17,12 +26,18 @@ export class PostsController {
     @Query('page') page: number,
     @Query('limit') limit: number,
   ) {
-    return this.postsService.getAll(page, limit);
+    return new Response(await this.postsService.getAll(page, limit, user.id));
   }
 
   @Post()
   @UseGuards(JwtAuthGuard)
   async createPost(@AuthUser() user: IUser, @Body() post: PostCreateDto) {
-    return this.postsService.createPost(user.id, post);
+    return new Response(await this.postsService.createPost(user.id, post));
+  }
+
+  @Post('/:id')
+  @UseGuards(JwtAuthGuard)
+  async likePost(@Param('id') id: string, @AuthUser() user: IUser) {
+    return new Response(await this.postsService.likePost(user.id, id));
   }
 }

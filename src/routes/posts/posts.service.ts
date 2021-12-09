@@ -7,6 +7,22 @@ import { Response } from '@/types/global';
 import { PostCreateDto } from '@/routes/posts/dto/post-create.dto';
 import { ProfileService } from '@/routes/profile/profile.service';
 
+const mapPostLikes = (posts: Posts[] | Posts, userId: string) => {
+  if (Array.isArray(posts)) {
+    return posts.map((post) => ({
+      ...post,
+      likesCount: post.likes.length,
+      isLiked: post.likes.includes(userId),
+    }));
+  }
+
+  return {
+    ...posts,
+    likesCount: posts.likes.length,
+    isLiked: posts.likes.includes(userId),
+  };
+};
+
 @Injectable()
 export class PostsService {
   constructor(
@@ -14,7 +30,7 @@ export class PostsService {
     private readonly profileService: ProfileService,
   ) {}
 
-  async getAll(page = 1, limit = 10): Promise<Posts[]> {
+  async getAll(page = 1, limit = 10, userId?: string) {
     if (page <= 0 || limit < 10) {
       throw new HttpException(
         new Response(
@@ -24,7 +40,7 @@ export class PostsService {
       );
     }
 
-    return await this.postRepository.find({
+    const [posts, postsCount] = await this.postRepository.findAndCount({
       order: {
         created: 'DESC',
       },
@@ -32,6 +48,11 @@ export class PostsService {
       take: limit,
       skip: page * limit - limit,
     });
+
+    return {
+      posts: mapPostLikes(posts, userId),
+      pages: Math.ceil(postsCount / limit),
+    };
   }
 
   async createPost(id: string, post: PostCreateDto) {
@@ -45,6 +66,30 @@ export class PostsService {
 
     await this.profileService.savePostToProfile(profile.id, newPost);
 
-    return new Response(newPost);
+    return newPost;
+  }
+
+  async likePost(userId: string, postId: string) {
+    try {
+      const post = await this.postRepository.findOne({
+        where: {
+          id: postId,
+        },
+        relations: ['profile'],
+      });
+
+      if (post.likes.some((id) => id === userId)) {
+        post.likes.splice(post.likes.indexOf(userId), 1);
+        return mapPostLikes(await this.postRepository.save(post), userId);
+      }
+
+      post.likes.push(userId);
+
+      return mapPostLikes(await this.postRepository.save(post), userId);
+    } catch (e) {
+      console.log(e);
+
+      throw new HttpException(e.response, HttpStatus.BAD_REQUEST);
+    }
   }
 }
