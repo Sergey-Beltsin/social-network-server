@@ -30,7 +30,7 @@ export class PostsService {
     private readonly profileService: ProfileService,
   ) {}
 
-  async getAll(page = 1, limit = 10, userId?: string) {
+  async getAll(page = 1, limit = 10, userId: string, requestedUserId?: string) {
     if (page <= 0 || limit < 10) {
       throw new HttpException(
         new Response(
@@ -41,6 +41,13 @@ export class PostsService {
     }
 
     const [posts, postsCount] = await this.postRepository.findAndCount({
+      where: requestedUserId
+        ? {
+            profile: {
+              id: requestedUserId,
+            },
+          }
+        : null,
       order: {
         created: 'DESC',
       },

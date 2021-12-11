@@ -12,6 +12,8 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { UsersService } from '@/routes/users/users.service';
 import { ProfileService } from '@/routes/profile/profile.service';
 import { Profile } from '@/routes/profile/profile.entity';
+import { PostsService } from '@/routes/posts/posts.service';
+import { Posts } from '@/routes/posts/posts.entity';
 
 @Module({
   imports: [
@@ -21,7 +23,7 @@ import { Profile } from '@/routes/profile/profile.entity';
       useFactory: getJwtConfig,
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([Users, Profile]),
+    TypeOrmModule.forFeature([Users, Profile, Posts]),
   ],
   providers: [
     AuthService,
@@ -29,6 +31,7 @@ import { Profile } from '@/routes/profile/profile.entity';
     ConfigService,
     UsersService,
     ProfileService,
+    PostsService,
   ],
   controllers: [AuthController],
 })

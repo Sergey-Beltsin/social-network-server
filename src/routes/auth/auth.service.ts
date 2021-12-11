@@ -7,15 +7,12 @@ import { UserLoginDto } from './dto/user-login.dto';
 import { UserCreateDto } from './dto/user-create.dto';
 import { EMAIL_OR_PASSWORD_INCORRECT } from './auth.constants';
 import { UsersService } from '@/routes/users/users.service';
-import { ProfileService } from '@/routes/profile/profile.service';
-import { Profile } from '@/routes/profile/profile.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
-    private readonly profileService: ProfileService,
   ) {}
 
   async login(user: UserLoginDto): Promise<Response> {
