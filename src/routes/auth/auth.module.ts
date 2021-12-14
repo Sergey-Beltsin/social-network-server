@@ -6,7 +6,7 @@ import { PassportModule } from '@nestjs/passport';
 
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { Users } from '@/routes/users/users.entity';
+import { Users } from '@/routes/users/entities/users.entity';
 import { getJwtConfig } from '@/configs/jwt.config';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { UsersService } from '@/routes/users/users.service';
@@ -14,6 +14,7 @@ import { ProfileService } from '@/routes/profile/profile.service';
 import { Profile } from '@/routes/profile/profile.entity';
 import { PostsService } from '@/routes/posts/posts.service';
 import { Posts } from '@/routes/posts/posts.entity';
+import { FriendRequest } from '@/routes/users/entities/friend-request.entity';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { Posts } from '@/routes/posts/posts.entity';
       useFactory: getJwtConfig,
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([Users, Profile, Posts]),
+    TypeOrmModule.forFeature([Users, Profile, Posts, FriendRequest]),
   ],
   providers: [
     AuthService,

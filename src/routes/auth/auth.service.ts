@@ -16,7 +16,7 @@ export class AuthService {
   ) {}
 
   async login(user: UserLoginDto): Promise<Response> {
-    const userDetails = await this.usersService.findByEmail(user.email, [
+    const userDetails = await this.usersService.findUserByEmail(user.email, [
       'profile',
     ]);
 
@@ -46,7 +46,7 @@ export class AuthService {
   }
 
   async create(user: UserCreateDto): Promise<Response> {
-    const newUser = await this.usersService.create(user);
+    const newUser = await this.usersService.createUser(user);
 
     return await this.login(newUser);
   }

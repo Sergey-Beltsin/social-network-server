@@ -62,8 +62,8 @@ export class PostsService {
     };
   }
 
-  async createPost(id: string, post: PostCreateDto) {
-    const profile = await this.profileService.getProfileInfo(id);
+  async createPost(userId: string, post: PostCreateDto) {
+    const profile = await this.profileService.getProfileInfo(userId);
 
     const newPost = await this.postRepository.save({
       ...post,
@@ -73,7 +73,7 @@ export class PostsService {
 
     await this.profileService.savePostToProfile(profile.id, newPost);
 
-    return newPost;
+    return mapPostLikes(newPost, userId);
   }
 
   async likePost(userId: string, postId: string) {

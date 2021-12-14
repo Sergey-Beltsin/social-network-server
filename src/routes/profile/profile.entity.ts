@@ -9,9 +9,10 @@ import {
 } from 'typeorm';
 
 import { Posts } from '@/routes/posts/posts.entity';
+import { IProfile } from '@/routes/profile/interfaces/profile.interface';
 
 @Entity()
-export class Profile extends BaseEntity {
+export class Profile extends BaseEntity implements IProfile {
   @PrimaryColumn('uuid')
   id: string;
 
