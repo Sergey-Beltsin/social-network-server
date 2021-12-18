@@ -51,7 +51,6 @@ export class PostsService {
 
     const friends = await this.usersService.getFriends(userId);
     const subscribedUsers = await this.usersService.getSubscribedUsers(userId);
-    console.log(subscribedUsers);
 
     const [posts, postsCount] = await this.postRepository.findAndCount({
       where: requestedUserId
