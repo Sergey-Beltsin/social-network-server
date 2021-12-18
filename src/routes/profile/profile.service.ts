@@ -74,4 +74,8 @@ export class ProfileService {
 
     return await this.profileRepository.save(profile);
   }
+
+  async getByIds(ids: string[]) {
+    return await this.profileRepository.findByIds(ids);
+  }
 }

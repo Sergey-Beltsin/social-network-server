@@ -1,6 +1,12 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { hash } from 'bcrypt';
 import { v4 } from 'uuid';
 
@@ -12,6 +18,26 @@ import { userPublicFields, uuidRegex } from '@/constants/user';
 import { PostsService } from '@/routes/posts/posts.service';
 import { FriendRequest } from '@/routes/users/entities/friend-request.entity';
 import { IProfile } from '@/routes/profile/interfaces/profile.interface';
+import { FriendRequestStatus } from '@/routes/users/interfaces/friend-request.interface';
+
+const getFriendRequestStatusByUser = (
+  role: 'receiver' | 'creator',
+  status: FriendRequestStatus,
+): FriendRequestStatus => {
+  if (role === 'receiver') {
+    if (status === 'declined') {
+      return 'waiting-for-response';
+    }
+
+    return status;
+  }
+
+  if (status === 'waiting-for-response') {
+    return 'sent';
+  }
+
+  return status;
+};
 
 @Injectable()
 export class UsersService {
@@ -21,23 +47,41 @@ export class UsersService {
     @InjectRepository(FriendRequest)
     private readonly friendRequestRepository: Repository<FriendRequest>,
     private readonly profileService: ProfileService,
+    @Inject(forwardRef(() => PostsService))
     private readonly postsService: PostsService,
   ) {}
 
-  async getAllUsers(userId: string): Promise<IProfile[]> {
-    const users = await this.profileService.getAll(userId);
+  async getAllUsers(userId: string, query: string): Promise<IProfile[]> {
     const friends = await this.getFriends(userId);
+    const users = (
+      await (query
+        ? this.profileService.getByQuery(query, userId)
+        : this.profileService.getAll(userId))
+    ).filter((user) => !friends.find((friend) => user.id === friend.id));
+    const friendRequests = await this.friendRequestRepository.find({
+      relations: ['creator', 'receiver'],
+    });
 
-    return users.map((user) => ({
-      ...user,
-      friendStatus:
-        friends.find((friend) => friend.id === user.id)?.friendStatus ||
-        'not-sent',
-    }));
-  }
+    return users.map((user) => {
+      const friendRequest = friendRequests.find(
+        (req) => user.id === req.creator.id || user.id === req.receiver.id,
+      );
 
-  async getUsersByQuery(query: string, id: string): Promise<Profile[]> {
-    return await this.profileService.getByQuery(query, id);
+      if (friendRequest) {
+        return {
+          ...user,
+          friendRequest: {
+            id: friendRequest.id,
+            status: getFriendRequestStatusByUser(
+              userId === friendRequest.receiver.id ? 'receiver' : 'creator',
+              friendRequest.status,
+            ),
+          },
+        };
+      }
+
+      return user;
+    });
   }
 
   async findUserByEmail(email: string, relations?: string[]): Promise<Users> {
@@ -103,13 +147,16 @@ export class UsersService {
     return await this.postsService.getAll(page, limit, userId, requestedUserId);
   }
 
-  async getFriendRequestById(friendRequestId: string) {
-    return await this.friendRequestRepository.findOne(friendRequestId);
+  async getFriendRequestById(
+    friendRequestId: string,
+    options?: FindOneOptions<FriendRequest>,
+  ) {
+    return await this.friendRequestRepository.findOne(friendRequestId, options);
   }
 
   async isRequestSentOrDeclined(
-    receiver: Users,
-    creator: Users,
+    receiver: Profile,
+    creator: Profile,
   ): Promise<boolean> {
     return this.friendRequestRepository
       .findOne({
@@ -119,7 +166,7 @@ export class UsersService {
         ],
       })
       .then((req) => {
-        return !!req;
+        return !!(req && req.status !== 'not-sent');
       });
   }
 
@@ -131,8 +178,8 @@ export class UsersService {
       );
     }
 
-    const receiver = await this.usersRepository.findOne(receiverId);
-    const creator = await this.usersRepository.findOne(creatorId);
+    const receiver = await this.profileService.getProfileInfo(receiverId);
+    const creator = await this.profileService.getProfileInfo(creatorId);
 
     if (await this.isRequestSentOrDeclined(receiver, creator)) {
       throw new HttpException(
@@ -141,20 +188,25 @@ export class UsersService {
       );
     }
 
-    return await this.friendRequestRepository.save({
-      receiver,
-      creator,
-      status: 'waiting-for-response',
-    });
+    return {
+      ...(await this.friendRequestRepository.save({
+        receiver,
+        creator,
+        status: 'waiting-for-response',
+      })),
+      status: 'sent',
+    };
   }
 
   async respondOnFriendRequest(
-    status: 'accepted' | 'declined',
+    status: FriendRequestStatus,
     friendRequestId: string,
   ) {
-    const friendRequest = await this.getFriendRequestById(friendRequestId);
+    const friendRequest = await this.getFriendRequestById(friendRequestId, {
+      relations: ['creator', 'receiver'],
+    });
 
-    if (!friendRequestId) {
+    if (!friendRequest) {
       throw new HttpException(
         'No friend request find with the same id',
         HttpStatus.BAD_REQUEST,
@@ -178,25 +230,59 @@ export class UsersService {
       relations: ['creator', 'receiver'],
     });
 
-    const userIds: { userId: string; reqId: string }[] = [];
-    const friends = [];
+    const users: IProfile[] = [];
 
-    for (const request of requests) {
+    requests.forEach((request) => {
       if (request.creator.id === userId) {
-        const user = await this.usersRepository.findOne(request.receiver.id, {
-          select: userPublicFields,
-        });
-        userIds.push({ userId: request.receiver.id, reqId: request.id });
-        console.log((await this.getFriendRequestById(request.id)).status);
-        friends.push({
-          ...user,
-          friendStatus: (await this.getFriendRequestById(request.id)).status,
+        users.push({
+          ...request.receiver,
+          friendRequest: {
+            status: request.status,
+            id: request.id,
+          },
         });
       } else if (request.receiver.id === userId) {
-        userIds.push({ userId: request.creator.id, reqId: request.id });
+        users.push({
+          ...request.creator,
+          friendRequest: {
+            status: request.status,
+            id: request.id,
+          },
+        });
       }
-    }
+    });
 
-    return friends;
+    return users;
+  }
+
+  async getUserIncomingFriendRequests(userId: string) {
+    const requests = await this.friendRequestRepository.find({
+      where: [
+        {
+          status: 'waiting-for-response',
+          receiver: { id: userId },
+        },
+        {
+          status: 'declined',
+          receiver: { id: userId },
+        },
+      ],
+      relations: ['creator', 'receiver'],
+    });
+
+    return requests.map((request) => ({
+      ...request.creator,
+      friendRequest: { id: request.id, status: 'waiting-for-response' },
+    }));
+  }
+
+  async getSubscribedUsers(userId: string) {
+    return await this.friendRequestRepository.find({
+      where: {
+        status: 'waiting-for-response',
+        creator: { id: userId },
+      },
+      relations: ['receiver'],
+    });
   }
 }

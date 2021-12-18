@@ -10,6 +10,7 @@ import {
 
 import { Posts } from '@/routes/posts/posts.entity';
 import { IProfile } from '@/routes/profile/interfaces/profile.interface';
+import { FriendRequest } from '@/routes/users/entities/friend-request.entity';
 
 @Entity()
 export class Profile extends BaseEntity implements IProfile {
@@ -34,4 +35,10 @@ export class Profile extends BaseEntity implements IProfile {
   @OneToMany(() => Posts, (post) => post.profile)
   @JoinColumn()
   posts: Posts[];
+
+  @OneToMany(() => FriendRequest, (friendRequest) => friendRequest.creator)
+  sentFriendRequests: FriendRequest[];
+
+  @OneToMany(() => FriendRequest, (friendRequest) => friendRequest.receiver)
+  receivedFriendRequests: FriendRequest[];
 }

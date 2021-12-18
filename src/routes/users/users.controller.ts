@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +17,7 @@ import { IUser } from '@/routes/users/interfaces/user.interface';
 import { Profile } from '@/routes/profile/profile.entity';
 import { Response } from '@/types/global';
 import { IProfile } from '@/routes/profile/interfaces/profile.interface';
+import { FriendRequestStatus } from '@/routes/users/interfaces/friend-request.interface';
 
 @Controller('users')
 export class UsersController {
@@ -25,12 +28,8 @@ export class UsersController {
   async getAll(
     @Query('q') query: string,
     @AuthUser() user: IUser,
-  ): Promise<IProfile[]> {
-    if (query) {
-      return this.usersService.getUsersByQuery(query, user.id);
-    }
-
-    return this.usersService.getAllUsers(user.id);
+  ): Promise<Response> {
+    return new Response(await this.usersService.getAllUsers(user.id, query));
   }
 
   @Post('/friend-request')
@@ -44,11 +43,19 @@ export class UsersController {
     );
   }
 
-  @Post('/friend-request/:id')
+  @Get('/friend-request/incoming')
+  @UseGuards(JwtAuthGuard)
+  async getUserIncomingFriendRequests(@AuthUser() user: IUser) {
+    return new Response(
+      await this.usersService.getUserIncomingFriendRequests(user.id),
+    );
+  }
+
+  @Put('/friend-request/:id')
   @UseGuards(JwtAuthGuard)
   async respondOnFriendRequest(
     @Param('id') id: string,
-    @Body('status') status: 'accepted' | 'declined',
+    @Body('status') status: FriendRequestStatus,
   ) {
     return new Response(
       await this.usersService.respondOnFriendRequest(status, id),

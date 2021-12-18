@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -6,6 +12,7 @@ import { Posts } from '@/routes/posts/posts.entity';
 import { Response } from '@/types/global';
 import { PostCreateDto } from '@/routes/posts/dto/post-create.dto';
 import { ProfileService } from '@/routes/profile/profile.service';
+import { UsersService } from '@/routes/users/users.service';
 
 const mapPostLikes = (posts: Posts[] | Posts, userId: string) => {
   if (Array.isArray(posts)) {
@@ -28,6 +35,8 @@ export class PostsService {
   constructor(
     @InjectRepository(Posts) private readonly postRepository: Repository<Posts>,
     private readonly profileService: ProfileService,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
   ) {}
 
   async getAll(page = 1, limit = 10, userId: string, requestedUserId?: string) {
@@ -39,6 +48,10 @@ export class PostsService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const friends = await this.usersService.getFriends(userId);
+    const subscribedUsers = await this.usersService.getSubscribedUsers(userId);
+    console.log(subscribedUsers);
 
     const [posts, postsCount] = await this.postRepository.findAndCount({
       where: requestedUserId
@@ -57,7 +70,19 @@ export class PostsService {
     });
 
     return {
-      posts: mapPostLikes(posts, userId),
+      posts: mapPostLikes(
+        requestedUserId
+          ? posts
+          : posts.filter(
+              (post) =>
+                post.profile.id === userId ||
+                friends.find((friend) => friend.id === post.profile.id) ||
+                subscribedUsers.find(
+                  (req) => req.receiver.id === post.profile.id,
+                ),
+            ),
+        userId,
+      ),
       pages: Math.ceil(postsCount / limit),
     };
   }

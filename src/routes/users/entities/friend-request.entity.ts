@@ -1,18 +1,18 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-import { Users } from '@/routes/users/entities/users.entity';
 import { FriendRequestStatus } from '@/routes/users/interfaces/friend-request.interface';
+import { Profile } from '@/routes/profile/profile.entity';
 
 @Entity()
 export class FriendRequest {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Users, (users) => users.sentFriendRequests)
-  creator: Users;
+  @ManyToOne(() => Profile, (profile) => profile.sentFriendRequests)
+  creator: Profile;
 
-  @ManyToOne(() => Users, (users) => users.receivedFriendRequests)
-  receiver: Users;
+  @ManyToOne(() => Profile, (profile) => profile.receivedFriendRequests)
+  receiver: Profile;
 
   @Column()
   status: FriendRequestStatus;
