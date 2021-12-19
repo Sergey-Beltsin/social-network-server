@@ -1,7 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { FriendRequestStatus } from '@/routes/users/interfaces/friend-request.interface';
-import { Profile } from '@/routes/profile/profile.entity';
+import { Profile } from '@/routes/profile/entities/profile.entity';
 
 @Entity()
 export class FriendRequest {

@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Not, Repository } from 'typeorm';
 
 import { Response } from '@/types/global';
-import { Profile } from '@/routes/profile/profile.entity';
-import { Posts } from '@/routes/posts/posts.entity';
+import { Profile } from '@/routes/profile/entities/profile.entity';
+import { Posts } from '@/routes/posts/entities/posts.entity';
 
 @Injectable()
 export class ProfileService {

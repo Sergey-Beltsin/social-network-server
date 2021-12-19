@@ -7,7 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Profile } from '@/routes/profile/profile.entity';
+import { Profile } from '@/routes/profile/entities/profile.entity';
 
 @Entity()
 export class Posts extends BaseEntity {

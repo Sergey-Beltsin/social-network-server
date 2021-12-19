@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { PostsService } from '@/routes/posts/posts.service';
+import { PostsService } from '@/routes/posts/services/posts.service';
 import { AuthUser } from '@/routes/users/decorators/auth-user.decorator';
 import { IUser } from '@/routes/users/interfaces/user.interface';
 import { PostCreateDto } from '@/routes/posts/dto/post-create.dto';

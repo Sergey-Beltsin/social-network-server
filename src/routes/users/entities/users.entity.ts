@@ -5,7 +5,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Profile } from '@/routes/profile/profile.entity';
+import { Profile } from '@/routes/profile/entities/profile.entity';
 import { JoinColumn } from 'typeorm';
 
 @Entity()

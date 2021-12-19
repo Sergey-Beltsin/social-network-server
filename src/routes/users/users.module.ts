@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { UsersService } from './users.service';
-import { UsersController } from '@/routes/users/users.controller';
+import { UsersService } from './services/users.service';
+import { UsersController } from '@/routes/users/controllers/users.controller';
 import { Users } from '@/routes/users/entities/users.entity';
-import { ProfileService } from '@/routes/profile/profile.service';
-import { Profile } from '@/routes/profile/profile.entity';
-import { Posts } from '@/routes/posts/posts.entity';
-import { PostsService } from '@/routes/posts/posts.service';
+import { ProfileService } from '@/routes/profile/services/profile.service';
+import { Profile } from '@/routes/profile/entities/profile.entity';
+import { Posts } from '@/routes/posts/entities/posts.entity';
+import { PostsService } from '@/routes/posts/services/posts.service';
 import { FriendRequest } from '@/routes/users/entities/friend-request.entity';
 
 @Module({

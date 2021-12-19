@@ -8,11 +8,11 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Posts } from '@/routes/posts/posts.entity';
+import { Posts } from '@/routes/posts/entities/posts.entity';
 import { Response } from '@/types/global';
 import { PostCreateDto } from '@/routes/posts/dto/post-create.dto';
-import { ProfileService } from '@/routes/profile/profile.service';
-import { UsersService } from '@/routes/users/users.service';
+import { ProfileService } from '@/routes/profile/services/profile.service';
+import { UsersService } from '@/routes/users/services/users.service';
 
 const mapPostLikes = (posts: Posts[] | Posts, userId: string) => {
   if (Array.isArray(posts)) {

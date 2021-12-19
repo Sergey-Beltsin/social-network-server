@@ -1,4 +1,4 @@
-import { Posts } from '@/routes/posts/posts.entity';
+import { Posts } from '@/routes/posts/entities/posts.entity';
 import { FriendRequestStatus } from '@/routes/users/interfaces/friend-request.interface';
 
 export interface IProfile {

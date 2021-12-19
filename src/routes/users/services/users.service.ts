@@ -12,10 +12,10 @@ import { v4 } from 'uuid';
 
 import { Users } from '@/routes/users/entities/users.entity';
 import { UserCreateDto } from '@/routes/auth/dto/user-create.dto';
-import { ProfileService } from '@/routes/profile/profile.service';
-import { Profile } from '@/routes/profile/profile.entity';
+import { ProfileService } from '@/routes/profile/services/profile.service';
+import { Profile } from '@/routes/profile/entities/profile.entity';
 import { userPublicFields, uuidRegex } from '@/constants/user';
-import { PostsService } from '@/routes/posts/posts.service';
+import { PostsService } from '@/routes/posts/services/posts.service';
 import { FriendRequest } from '@/routes/users/entities/friend-request.entity';
 import { IProfile } from '@/routes/profile/interfaces/profile.interface';
 import { FriendRequestStatus } from '@/routes/users/interfaces/friend-request.interface';

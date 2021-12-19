@@ -3,10 +3,10 @@ import { JwtService } from '@nestjs/jwt';
 import { compareSync } from 'bcrypt';
 
 import { Response } from '@/types/global';
-import { UserLoginDto } from './dto/user-login.dto';
-import { UserCreateDto } from './dto/user-create.dto';
-import { EMAIL_OR_PASSWORD_INCORRECT } from './auth.constants';
-import { UsersService } from '@/routes/users/users.service';
+import { UserLoginDto } from '../dto/user-login.dto';
+import { UserCreateDto } from '../dto/user-create.dto';
+import { EMAIL_OR_PASSWORD_INCORRECT } from '../constants/auth.constants';
+import { UsersService } from '@/routes/users/services/users.service';
 
 @Injectable()
 export class AuthService {

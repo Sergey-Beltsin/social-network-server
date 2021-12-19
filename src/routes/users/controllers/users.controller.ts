@@ -10,11 +10,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { UsersService } from '@/routes/users/users.service';
+import { UsersService } from '@/routes/users/services/users.service';
 import { JwtAuthGuard } from '@/routes/auth/strategy/jwt-auth.guard';
 import { AuthUser } from '@/routes/users/decorators/auth-user.decorator';
 import { IUser } from '@/routes/users/interfaces/user.interface';
-import { Profile } from '@/routes/profile/profile.entity';
+import { Profile } from '@/routes/profile/entities/profile.entity';
 import { Response } from '@/types/global';
 import { IProfile } from '@/routes/profile/interfaces/profile.interface';
 import { FriendRequestStatus } from '@/routes/users/interfaces/friend-request.interface';

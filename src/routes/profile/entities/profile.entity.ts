@@ -8,7 +8,7 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 
-import { Posts } from '@/routes/posts/posts.entity';
+import { Posts } from '@/routes/posts/entities/posts.entity';
 import { IProfile } from '@/routes/profile/interfaces/profile.interface';
 import { FriendRequest } from '@/routes/users/entities/friend-request.entity';
 
