@@ -19,6 +19,7 @@ import { PostsService } from '@/routes/posts/services/posts.service';
 import { FriendRequest } from '@/routes/users/entities/friend-request.entity';
 import { IProfile } from '@/routes/profile/interfaces/profile.interface';
 import { FriendRequestStatus } from '@/routes/users/interfaces/friend-request.interface';
+import { FriendRequestService } from '@/routes/users/services/friend-request.service';
 
 const getFriendRequestStatusByUser = (
   role: 'receiver' | 'creator',
@@ -44,11 +45,10 @@ export class UsersService {
   constructor(
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
-    @InjectRepository(FriendRequest)
-    private readonly friendRequestRepository: Repository<FriendRequest>,
     private readonly profileService: ProfileService,
     @Inject(forwardRef(() => PostsService))
     private readonly postsService: PostsService,
+    private readonly friendRequestService: FriendRequestService,
   ) {}
 
   async getAllUsers(userId: string, query: string): Promise<IProfile[]> {
@@ -58,9 +58,7 @@ export class UsersService {
         ? this.profileService.getByQuery(query, userId)
         : this.profileService.getAll(userId))
     ).filter((user) => !friends.find((friend) => user.id === friend.id));
-    const friendRequests = await this.friendRequestRepository.find({
-      relations: ['creator', 'receiver'],
-    });
+    const friendRequests = await this.friendRequestService.getAll();
 
     return users.map((user) => {
       const friendRequest = friendRequests.find(
@@ -147,27 +145,15 @@ export class UsersService {
     return await this.postsService.getAll(page, limit, userId, requestedUserId);
   }
 
-  async getFriendRequestById(
-    friendRequestId: string,
-    options?: FindOneOptions<FriendRequest>,
-  ) {
-    return await this.friendRequestRepository.findOne(friendRequestId, options);
+  async getFriendRequestById(friendRequestId: string) {
+    return await this.friendRequestService.getById(friendRequestId);
   }
 
   async isRequestSentOrDeclined(
-    receiver: Profile,
     creator: Profile,
+    receiver: Profile,
   ): Promise<boolean> {
-    return this.friendRequestRepository
-      .findOne({
-        where: [
-          { creator, receiver },
-          { creator: receiver, receiver: creator },
-        ],
-      })
-      .then((req) => {
-        return !!(req && req.status !== 'not-sent');
-      });
+    return await this.friendRequestService.getIsRequestSent(creator, receiver);
   }
 
   async createFriendRequest(receiverId: string, creatorId: string) {
@@ -181,7 +167,7 @@ export class UsersService {
     const receiver = await this.profileService.getProfileInfo(receiverId);
     const creator = await this.profileService.getProfileInfo(creatorId);
 
-    if (await this.isRequestSentOrDeclined(receiver, creator)) {
+    if (await this.isRequestSentOrDeclined(creator, receiver)) {
       throw new HttpException(
         'Request already had been sent or declined',
         HttpStatus.BAD_REQUEST,
@@ -189,11 +175,10 @@ export class UsersService {
     }
 
     return {
-      ...(await this.friendRequestRepository.save({
-        receiver,
+      ...(await this.friendRequestService.createFriendRequest(
         creator,
-        status: 'waiting-for-response',
-      })),
+        receiver,
+      )),
       status: 'sent',
     };
   }
@@ -202,9 +187,9 @@ export class UsersService {
     status: FriendRequestStatus,
     friendRequestId: string,
   ) {
-    const friendRequest = await this.getFriendRequestById(friendRequestId, {
-      relations: ['creator', 'receiver'],
-    });
+    const friendRequest = await this.friendRequestService.getById(
+      friendRequestId,
+    );
 
     if (!friendRequest) {
       throw new HttpException(
@@ -213,22 +198,11 @@ export class UsersService {
       );
     }
 
-    return await this.friendRequestRepository.save({
-      ...friendRequest,
-      status,
-    });
+    return await this.friendRequestService.changeStatus(friendRequest, status);
   }
 
   async getFriends(userId: string) {
-    const user = await this.getUserByIdOrUsername(userId);
-
-    const requests = await this.friendRequestRepository.find({
-      where: [
-        { creator: user, status: 'accepted' },
-        { receiver: user, status: 'accepted' },
-      ],
-      relations: ['creator', 'receiver'],
-    });
+    const requests = await this.friendRequestService.getFriendsByUserId(userId);
 
     const users: IProfile[] = [];
 
@@ -256,19 +230,8 @@ export class UsersService {
   }
 
   async getUserIncomingFriendRequests(userId: string) {
-    const requests = await this.friendRequestRepository.find({
-      where: [
-        {
-          status: 'waiting-for-response',
-          receiver: { id: userId },
-        },
-        {
-          status: 'declined',
-          receiver: { id: userId },
-        },
-      ],
-      relations: ['creator', 'receiver'],
-    });
+    const requests =
+      await this.friendRequestService.getIncomingRequestsByUserId(userId);
 
     return requests.map((request) => ({
       ...request.creator,
@@ -276,13 +239,7 @@ export class UsersService {
     }));
   }
 
-  async getSubscribedUsers(userId: string) {
-    return await this.friendRequestRepository.find({
-      where: {
-        status: 'waiting-for-response',
-        creator: { id: userId },
-      },
-      relations: ['receiver'],
-    });
+  async getSubscribedUsers(userId: string): Promise<FriendRequest[]> {
+    return await this.friendRequestService.getSubscribedUsersByUserId(userId);
   }
 }

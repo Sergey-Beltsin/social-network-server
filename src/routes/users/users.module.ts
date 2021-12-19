@@ -9,10 +9,11 @@ import { Profile } from '@/routes/profile/entities/profile.entity';
 import { Posts } from '@/routes/posts/entities/posts.entity';
 import { PostsService } from '@/routes/posts/services/posts.service';
 import { FriendRequest } from '@/routes/users/entities/friend-request.entity';
+import { FriendRequestService } from '@/routes/users/services/friend-request.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Users, Profile, Posts, FriendRequest])],
-  providers: [UsersService, ProfileService, PostsService],
+  providers: [UsersService, ProfileService, PostsService, FriendRequestService],
   controllers: [UsersController],
 })
 export class UsersModule {}

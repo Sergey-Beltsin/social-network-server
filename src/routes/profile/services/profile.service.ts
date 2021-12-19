@@ -78,4 +78,8 @@ export class ProfileService {
   async getByIds(ids: string[]) {
     return await this.profileRepository.findByIds(ids);
   }
+
+  async getById(id: string) {
+    return await this.profileRepository.findOne(id);
+  }
 }

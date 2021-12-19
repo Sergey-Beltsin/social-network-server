@@ -15,6 +15,7 @@ import { Profile } from '@/routes/profile/entities/profile.entity';
 import { PostsService } from '@/routes/posts/services/posts.service';
 import { Posts } from '@/routes/posts/entities/posts.entity';
 import { FriendRequest } from '@/routes/users/entities/friend-request.entity';
+import { FriendRequestService } from '@/routes/users/services/friend-request.service';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { FriendRequest } from '@/routes/users/entities/friend-request.entity';
     UsersService,
     ProfileService,
     PostsService,
+    FriendRequestService,
   ],
   controllers: [AuthController],
 })
