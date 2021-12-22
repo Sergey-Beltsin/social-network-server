@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
   Post,
   Query,
@@ -36,6 +37,7 @@ export class PostsController {
   }
 
   @Post('/:id')
+  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   async likePost(@Param('id') id: string, @AuthUser() user: IUser) {
     return new Response(await this.postsService.likePost(user.id, id));
