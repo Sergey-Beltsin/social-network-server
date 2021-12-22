@@ -1,10 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Not, Repository } from 'typeorm';
+import { FindManyOptions, ILike, Not, Repository } from 'typeorm';
 
 import { Response } from '@/types/global';
 import { Profile } from '@/routes/profile/entities/profile.entity';
 import { Posts } from '@/routes/posts/entities/posts.entity';
+import { uuidRegex } from '@/constants/user';
 
 @Injectable()
 export class ProfileService {
@@ -13,29 +14,33 @@ export class ProfileService {
     private readonly profileRepository: Repository<Profile>,
   ) {}
 
-  async getAll(id: string) {
+  async getAll(id: string, options?: FindManyOptions<Profile>) {
     return await this.profileRepository.find({
       where: {
         id: Not(id),
       },
+      ...options,
     });
   }
 
-  async getByQuery(query: string, id: string): Promise<Profile[]> {
+  async getByQuery(
+    query: string,
+    id: string,
+    options?: FindManyOptions<Profile>,
+  ): Promise<Profile[]> {
     return await this.profileRepository.find({
       where: [
         { name: ILike(`%${query}%`), id: Not(id) },
         { surname: ILike(`%${query}%`), id: Not(id) },
         { username: ILike(`%${query}%`), id: Not(id) },
       ],
+      ...options,
     });
   }
 
   async getProfileInfo(id: string): Promise<Profile> {
     const profile = await this.profileRepository.findOne({
-      where: {
-        id: id,
-      },
+      where: uuidRegex.test(id) ? { id } : { username: id },
     });
 
     if (!profile) {

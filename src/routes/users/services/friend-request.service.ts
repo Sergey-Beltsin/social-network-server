@@ -25,6 +25,12 @@ export class FriendRequestService {
     });
   }
 
+  async getByIds(ids: string[]): Promise<FriendRequest[]> {
+    return await this.friendRequestRepository.findByIds(ids, {
+      relations: ['creator', 'receiver'],
+    });
+  }
+
   async changeStatus(
     request: FriendRequest,
     status: FriendRequestStatus,
@@ -99,5 +105,17 @@ export class FriendRequestService {
       .then((req) => {
         return !!(req && req.status !== 'not-sent');
       });
+  }
+
+  async getFriendRequestByUsers(
+    creatorId: string,
+    receiverId: string,
+  ): Promise<FriendRequest> {
+    return await this.friendRequestRepository.findOne({
+      where: [
+        { creator: { id: creatorId }, receiver: { id: receiverId } },
+        { creator: { id: receiverId }, receiver: { id: creatorId } },
+      ],
+    });
   }
 }

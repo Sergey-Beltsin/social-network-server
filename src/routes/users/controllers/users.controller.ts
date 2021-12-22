@@ -14,14 +14,16 @@ import { UsersService } from '@/routes/users/services/users.service';
 import { JwtAuthGuard } from '@/routes/auth/strategy/jwt-auth.guard';
 import { AuthUser } from '@/routes/users/decorators/auth-user.decorator';
 import { IUser } from '@/routes/users/interfaces/user.interface';
-import { Profile } from '@/routes/profile/entities/profile.entity';
 import { Response } from '@/types/global';
-import { IProfile } from '@/routes/profile/interfaces/profile.interface';
 import { FriendRequestStatus } from '@/routes/users/interfaces/friend-request.interface';
+import { FriendRequestService } from '@/routes/users/services/friend-request.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly friendRequestService: FriendRequestService,
+  ) {}
 
   @Get()
   @UseGuards(JwtAuthGuard)
@@ -56,9 +58,10 @@ export class UsersController {
   async respondOnFriendRequest(
     @Param('id') id: string,
     @Body('status') status: FriendRequestStatus,
+    @AuthUser() user: IUser,
   ) {
     return new Response(
-      await this.usersService.respondOnFriendRequest(status, id),
+      await this.usersService.respondOnFriendRequest(status, id, user.id),
     );
   }
 
@@ -66,14 +69,16 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   async getFriendRequestById(@Param('id') friendRequestId: string) {
     return new Response(
-      await this.usersService.getFriendRequestById(friendRequestId),
+      await this.friendRequestService.getById(friendRequestId),
     );
   }
 
   @Get('/:id')
   @UseGuards(JwtAuthGuard)
-  async getByIdOrUsername(@Param('id') id: string) {
-    return new Response(await this.usersService.getUserByIdOrUsername(id));
+  async getByIdOrUsername(@Param('id') id: string, @AuthUser() user: IUser) {
+    return new Response(
+      await this.usersService.getUserByIdOrUsername(user.id, id),
+    );
   }
 
   @Get('/:id/posts')
@@ -91,7 +96,7 @@ export class UsersController {
 
   @Get('/:id/friends')
   @UseGuards(JwtAuthGuard)
-  async getFriends(@Param('id') userId: string) {
-    return new Response(await this.usersService.getFriends(userId));
+  async getFriends(@Param('id') userId: string, @Query('q') query: string) {
+    return new Response(await this.usersService.getFriends(userId, query));
   }
 }
