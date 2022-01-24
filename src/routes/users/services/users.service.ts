@@ -19,7 +19,6 @@ import { FriendRequest } from '@/routes/users/entities/friend-request.entity';
 import { IProfile } from '@/routes/profile/interfaces/profile.interface';
 import { FriendRequestStatus } from '@/routes/users/interfaces/friend-request.interface';
 import { FriendRequestService } from '@/routes/users/services/friend-request.service';
-import { uuidRegex } from '@/constants/user';
 
 const getFriendRequestStatusByUser = (
   role: 'receiver' | 'creator',
@@ -72,6 +71,9 @@ export class UsersService {
       const friendRequest = friendRequests.find(
         (req) => userId === req.creator.id || userId === req.receiver.id,
       );
+
+      delete user.sentFriendRequests;
+      delete user.receivedFriendRequests;
 
       if (friendRequest) {
         currentUsers.push({
@@ -133,10 +135,20 @@ export class UsersService {
       profile.id,
     );
 
-    return {
-      ...profile,
-      friendRequest: request,
-    };
+    if (request) {
+      return {
+        ...profile,
+        friendRequest: {
+          id: request.id,
+          status: getFriendRequestStatusByUser(
+            userId === request.receiver.id ? 'receiver' : 'creator',
+            request.status,
+          ),
+        },
+      };
+    }
+
+    return profile;
   }
 
   async getPostsById(
@@ -262,5 +274,20 @@ export class UsersService {
 
   async getSubscribedUsers(userId: string): Promise<FriendRequest[]> {
     return await this.friendRequestService.getSubscribedUsersByUserId(userId);
+  }
+
+  async setSocketId(userId: string, socketId: string | null) {
+    const user = await this.usersRepository.findOne(userId);
+
+    return await this.usersRepository.save({
+      ...user,
+      socketId,
+    });
+  }
+
+  async getSocketId(userId: string) {
+    const user = await this.usersRepository.findOne(userId);
+
+    return user.socketId;
   }
 }

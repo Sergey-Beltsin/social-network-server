@@ -8,6 +8,7 @@ import { AuthModule } from './routes/auth/auth.module';
 import { UsersModule } from './routes/users/users.module';
 import { ProfileModule } from './routes/profile/profile.module';
 import { PostsModule } from './routes/posts/posts.module';
+import { ChatModule } from './routes/chat/chat.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { PostsModule } from './routes/posts/posts.module';
     UsersModule,
     ProfileModule,
     PostsModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

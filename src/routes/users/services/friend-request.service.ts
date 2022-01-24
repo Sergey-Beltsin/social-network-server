@@ -116,6 +116,7 @@ export class FriendRequestService {
         { creator: { id: creatorId }, receiver: { id: receiverId } },
         { creator: { id: receiverId }, receiver: { id: creatorId } },
       ],
+      relations: ['creator', 'receiver'],
     });
   }
 }

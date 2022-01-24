@@ -87,4 +87,21 @@ export class ProfileService {
   async getById(id: string) {
     return await this.profileRepository.findOne(id);
   }
+
+  async setIsOnline(userId: string, isOnline: boolean) {
+    const user = await this.getProfileInfo(userId);
+
+    if (isOnline) {
+      return await this.profileRepository.save({
+        ...user,
+        isOnline: true,
+      });
+    }
+
+    return await this.profileRepository.save({
+      ...user,
+      isOnline: false,
+      lastOnline: new Date(),
+    });
+  }
 }

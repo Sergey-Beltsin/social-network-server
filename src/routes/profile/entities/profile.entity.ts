@@ -4,6 +4,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   OneToMany,
   PrimaryColumn,
 } from 'typeorm';
@@ -11,6 +12,8 @@ import {
 import { Posts } from '@/routes/posts/entities/posts.entity';
 import { IProfile } from '@/routes/profile/interfaces/profile.interface';
 import { FriendRequest } from '@/routes/users/entities/friend-request.entity';
+import { Conversation } from '@/routes/chat/entities/conversation.entity';
+import { Message } from '@/routes/chat/entities/message.entity';
 
 @Entity()
 export class Profile extends BaseEntity implements IProfile {
@@ -32,6 +35,12 @@ export class Profile extends BaseEntity implements IProfile {
   @Column({ nullable: false })
   surname: string;
 
+  @Column({ nullable: true })
+  isOnline?: boolean;
+
+  @Column({ nullable: true })
+  lastOnline?: Date;
+
   @OneToMany(() => Posts, (post) => post.profile)
   @JoinColumn()
   posts: Posts[];
@@ -41,4 +50,10 @@ export class Profile extends BaseEntity implements IProfile {
 
   @OneToMany(() => FriendRequest, (friendRequest) => friendRequest.receiver)
   receivedFriendRequests: FriendRequest[];
+
+  @ManyToMany(() => Conversation, (conversation) => conversation.users)
+  conversations: Conversation[];
+
+  @OneToMany(() => Message, (message) => message.user)
+  messages: Message[];
 }

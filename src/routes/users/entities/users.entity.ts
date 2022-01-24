@@ -19,6 +19,9 @@ export class Users extends BaseEntity {
   @Column({ nullable: false })
   password: string;
 
+  @Column({ nullable: true })
+  socketId?: string;
+
   @OneToOne(() => Profile, { eager: true })
   @JoinColumn()
   profile: Profile;

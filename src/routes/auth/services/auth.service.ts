@@ -7,6 +7,7 @@ import { UserLoginDto } from '../dto/user-login.dto';
 import { UserCreateDto } from '../dto/user-create.dto';
 import { EMAIL_OR_PASSWORD_INCORRECT } from '../constants/auth.constants';
 import { UsersService } from '@/routes/users/services/users.service';
+import { Users } from '@/routes/users/entities/users.entity';
 
 @Injectable()
 export class AuthService {
@@ -49,5 +50,11 @@ export class AuthService {
     const newUser = await this.usersService.createUser(user);
 
     return await this.login(newUser);
+  }
+
+  async getJwtUser(
+    jwt: string,
+  ): Promise<{ email: string; sub: string } | null> {
+    return await this.jwtService.verifyAsync(jwt);
   }
 }
