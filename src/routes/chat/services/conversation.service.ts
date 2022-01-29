@@ -24,37 +24,38 @@ export class ConversationService {
     private readonly usersService: UsersService,
   ) {}
 
-  async getConversation(creatorId, friendId) {
+  async getConversation(creatorId: string, friendId: string) {
     return await this.conversationRepository
       .createQueryBuilder('conversation')
       .leftJoinAndSelect('conversation.users', 'user')
       .where('user.id = :friendId', { friendId })
-      .orWhere('user.id = :creatorId', { creatorId })
+      .andWhere('user.id = :creatorId', { creatorId })
       .leftJoinAndSelect('conversation.messages', 'messages')
       .getOne();
+  }
+
+  async getConversationById(conversationId: string) {
+    return await this.conversationRepository.findOne(conversationId);
   }
 
   async createConversation(
     creator: IProfile,
     friend: IProfile,
-  ): Promise<{ conversation: IConversation; isBeenExists: boolean }> {
+  ): Promise<IConversation> {
     const existedConversation = await this.getConversation(
       creator.id,
       friend.id,
     );
 
     if (existedConversation) {
-      return { conversation: existedConversation, isBeenExists: true };
+      return existedConversation;
     }
 
     const conversation: IConversation = {
       users: [creator, friend],
     };
 
-    return {
-      conversation: await this.conversationRepository.save(conversation),
-      isBeenExists: false,
-    };
+    return await this.conversationRepository.save(conversation);
   }
 
   async getConversationsWithUsers(userId: string) {
@@ -65,15 +66,25 @@ export class ConversationService {
         .leftJoinAndSelect('conversation.messages', 'messages')
         .leftJoinAndSelect('messages.user', 'messageUser')
         .orderBy('conversation.lastUpdated', 'DESC')
-        .where('user.id = :userId', { userId })
         .getMany()
-    ).map((conversation) => ({
-      ...conversation,
-      messages: conversation.messages.map((message) => ({
-        ...message,
-        isOwnerMessage: message.user.id === userId,
-      })),
-    }));
+    )
+      .filter(
+        (conversation) =>
+          !!conversation.users.find((user) => user.id === userId),
+      )
+      .map((conversation) => ({
+        ...conversation,
+        messages: conversation.messages
+          .map((message) => ({
+            ...message,
+            isOwnerMessage: message.user.id === userId,
+          }))
+          .sort((a, b) =>
+            new Date(a.created).getTime() > new Date(b.created).getTime()
+              ? 1
+              : -1,
+          ),
+      }));
   }
 
   async createMessage(message: IMessage) {

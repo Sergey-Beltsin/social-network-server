@@ -40,10 +40,15 @@ export class ChatGateway
       return;
     }
 
-    const user = await this.authService.getJwtUser(jwt);
-    socket.data.user = await this.profileService.getProfileInfo(user.sub);
+    try {
+      const user = await this.authService.getJwtUser(jwt);
+      socket.data.user = await this.profileService.getProfileInfo(user.sub);
 
-    this.conversationService.joinConversation(socket.id, user.sub);
+      this.conversationService.joinConversation(socket.id, user.sub);
+    } catch (e) {
+      console.log(e);
+      this.handleDisconnect(socket);
+    }
   }
 
   @SubscribeMessage('getConversations')
@@ -57,7 +62,6 @@ export class ChatGateway
 
   @SubscribeMessage('sendMessage')
   async sendMessage(socket: Socket, messageDto: SendMessageDto) {
-    console.log('message', messageDto);
     if (!messageDto.user) {
       return null;
     }
@@ -69,8 +73,14 @@ export class ChatGateway
       user,
     };
 
-    const { conversation, isBeenExists } =
-      await this.conversationService.createConversation(user, messageDto.user);
+    const conversation = messageDto.conversationId
+      ? await this.conversationService.getConversationById(
+          messageDto.conversationId,
+        )
+      : await this.conversationService.createConversation(
+          user,
+          messageDto.user,
+        );
 
     message.conversation = conversation;
 
@@ -80,11 +90,18 @@ export class ChatGateway
       console.log(
         `New message has emitted to user ${messageDto.user.username}. Message is: ${newMessage.message}`,
       );
-      if (!isBeenExists) {
+      if (!messageDto.conversationId) {
         this.server.to(socketId).emit('newConversation', conversation);
+        this.server.to(socket.id).emit('newConversation', conversation);
       }
 
-      this.server.to(socketId).emit('newMessage', newMessage);
+      console.log(socketId, 'asdasdasd');
+      this.server
+        .to(socketId)
+        .emit('newMessage', { ...newMessage, isOwnerMessage: false });
+      this.server
+        .to(socket.id)
+        .emit('newMessage', { ...newMessage, isOwnerMessage: true });
     });
   }
 
@@ -93,6 +110,11 @@ export class ChatGateway
   }
 
   handleDisconnect(socket: Socket): any {
-    this.conversationService.leaveConversation(socket.id, socket.data.user.id);
+    if (socket.data.user) {
+      this.conversationService.leaveConversation(
+        socket.id,
+        socket.data.user.id,
+      );
+    }
   }
 }

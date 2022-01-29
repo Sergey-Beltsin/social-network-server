@@ -1,4 +1,4 @@
-import { IsDefined, MaxLength } from 'class-validator';
+import { IsDefined, IsUUID, MaxLength } from 'class-validator';
 import { IProfile } from '@/routes/profile/interfaces/profile.interface';
 
 export class SendMessageDto {
@@ -8,4 +8,8 @@ export class SendMessageDto {
 
   @IsDefined({ message: 'required' })
   user: IProfile;
+
+  @IsDefined({ message: 'required' })
+  @IsUUID('4', { message: 'format' })
+  conversationId: string;
 }
