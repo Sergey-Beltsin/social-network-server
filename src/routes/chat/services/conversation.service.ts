@@ -53,6 +53,7 @@ export class ConversationService {
 
     const conversation: IConversation = {
       users: [creator, friend],
+      messages: [],
     };
 
     return await this.conversationRepository.save(conversation);
@@ -88,6 +89,10 @@ export class ConversationService {
   }
 
   async createMessage(message: IMessage) {
+    await this.conversationRepository.save({
+      ...message.conversation,
+      lastUpdated: new Date(),
+    });
     return await this.messageRepository.save(message);
   }
 
